@@ -44,6 +44,11 @@ void analyzeInstruction(string instruction){
         
     // }
 }
+void printDataVector(){
+    cout <<"PRINTING DATA VECTOR==============================\n";
+    for(auto i : dataVector ) cout <<"PC: " << i.programCounter <<endl << "VALUE: " << i.value <<endl;
+
+}
 // Returns variable value based on progam counter position
 int getMemValue(string memPc){
     int intMemPc = stoi(memPc);
@@ -78,12 +83,13 @@ void mathInstruction (Instruction instruction){
     }   
 }       
 
-int jumpInstruction (Instruction instruction, vector<Instruction> codeVector, int * shouldJump){
+int jumpInstruction (Instruction instruction, vector<Instruction> codeVector, int &shouldJump){
     // While jumpPc is not  used, it remains in the code for context 
     // jumpPc refers to the programCounter we want to jump to
     // While "index" refers to the index of jumpPc 
     int jumpPc = 0;
     int index = 0;
+
     for(auto const &i : codeVector){
         if(stoi(instruction.parameters.at(0)) == i.programCounter){
             jumpPc = stoi(i.parameters.at(0));
@@ -92,29 +98,31 @@ int jumpInstruction (Instruction instruction, vector<Instruction> codeVector, in
         index++;
     }
 
-    switch(instruction.opcode){
-        case 5:
-            return index;
-            break;
-        case 6: 
-            if(accumulator<0) {
-                *shouldJump = 1;
-                return index;   
-            }
-            break;
-        case 7:
-            if(accumulator>0) {
-                *shouldJump = 1;
-                return index;   
-            }
-            break;
-        case 8:            
-            if(accumulator==0) {
-                *shouldJump = 1;
-                return index;   
-            }
-            break;
+    if(instruction.opcode == 5){
+        return index;
     }
+    else if(instruction.opcode == 6){
+        if(accumulator<0) {
+                shouldJump = 1;
+                return index;   
+        }
+
+    }
+    else if(instruction.opcode == 7){
+        if(accumulator>0) {
+            shouldJump = 1;
+            return index;   
+        }
+        
+    }
+    else if(instruction.opcode == 8){
+        if(accumulator==0) {
+            shouldJump = 1;
+            return index;   
+        }
+        
+    }
+    return index;
        
 }
 
@@ -123,7 +131,8 @@ void copyInstruction (Instruction instruction){
         case 9:
             Symbol * auxSymbol1 = getMemPosition(instruction.parameters.at(0));
             Symbol * auxSymbol2 = getMemPosition(instruction.parameters.at(1));
-            *auxSymbol2 = *auxSymbol1;
+
+            auxSymbol2->value = auxSymbol1->value;
             break;
     }
 }
@@ -132,10 +141,14 @@ void loadStoreInstruction(Instruction instruction){
     switch(instruction.opcode){
         case 10: 
             accumulator = getMemValue(instruction.parameters.at(0));
+            
             break;
-        case 11: 
+        case 11:
             Symbol * auxSymbol = getMemPosition(instruction.parameters.at(0));
+            // cout << "value b4: " << auxSymbol->value <<endl;
+            // cout << "value accumulator: " <<accumulator <<endl;
             auxSymbol->value = accumulator;
+
             break;
     }
 }
@@ -144,12 +157,7 @@ void userInteractionInstruction(Instruction instruction){
     switch(instruction.opcode){
 
         case 12:{
-                cout << instruction.simbolicOpcode <<endl;
-                cout << instruction.parameters.size() <<endl;
-
-
                 Symbol * auxSymbol = getMemPosition(instruction.parameters.at(0));
-                cout <<"YAHO;" <<endl;
                 cin >> auxSymbol->value;
                 break;
             }
@@ -165,14 +173,17 @@ void stopInstruction(Instruction instruction){
 
 void runCode(vector<Instruction> codeVector){
     for(int i = 0; i<codeVector.size();i++){
+       
+        programCounter = codeVector.at(i).programCounter;
         if(codeVector.at(i).opcode >= 1 && codeVector.at(i).opcode <= 4){
             mathInstruction(codeVector.at(i));
+
         }
         else if(codeVector.at(i).opcode>=5 && codeVector.at(i).opcode<=8){
-            int * shouldJump = 0;
+            int shouldJump = 0;
             int auxValue = jumpInstruction(codeVector.at(i), codeVector, shouldJump);
-            if(*shouldJump == 1){
-                i = auxValue;
+            if(shouldJump == 1){
+                i = auxValue -1;
             }
         }
         else if(codeVector.at(i).opcode==9){
@@ -180,18 +191,25 @@ void runCode(vector<Instruction> codeVector){
         }
         else if(codeVector.at(i).opcode>=10 && codeVector.at(i).opcode<=11){
             loadStoreInstruction(codeVector.at(i));
+
         }
         else if(codeVector.at(i).opcode>=12 && codeVector.at(i).opcode<=13){
-        cout << "i : " << codeVector.at(i).simbolicOpcode <<endl;
-
             userInteractionInstruction(codeVector.at(i));
+
         }
         else if(codeVector.at(i).opcode == 14){
+
             stopInstruction(codeVector.at(i));
+
         }
         else{
             cout << "Fatal Error\nUnrecognized instruction\n";
         }
+        //  printRuntimeInfo();
+        // printDataVector();
+        // cout << "instr:" << codeVector.at(i).simbolicOpcode<<endl;
+        // string x;
+        // cin >> x;
     }
 }
 
@@ -254,6 +272,7 @@ void openCode(ifstream &inFile){
         try{   
             vector<string> codeVector = parseProgram(readLine);
             dataVector = getData(codeVector); 
+
             vector<Instruction> instructionsVector = linkInstructions(codeVector);
 
             runCode(instructionsVector);
