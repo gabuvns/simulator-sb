@@ -13,10 +13,16 @@ using std::string;
 
 int main(int argc, char **argv) {
     string fileName;
+    string outputFileName;
+
     //Check initial input arguments 
     if(argc >= 2){
         fileName = argv[1];
+        if(argc == 3){
+            outputFileName = argv[2];
+        }
     }
+    
     else{
         cout << "Invalid number of arguments." << endl;
         return 0;

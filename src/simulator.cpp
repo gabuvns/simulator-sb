@@ -16,8 +16,16 @@ using std::string;
 using std::vector;
 using std::map;
 
+string _outputFileName = "myOutputFile.txt";
+vector<int> outputValues;
 int accumulator = 0, programCounter = 0;
 int programError = 0;
+
+void printDataVector(){
+    cout <<"PRINTING DATA VECTOR==============================\n";
+    for(auto i : dataVector ) cout <<"PC: " << i.programCounter <<endl << "VALUE: " << i.value <<endl;
+
+}
 
 void printRuntimeInfo(){
     cout << "Program Counter <- " << programCounter << endl;
@@ -38,17 +46,7 @@ vector<string> parseProgram(string readLine){
     }
     return parsing;
 } 
-void analyzeInstruction(string instruction){
-    
-    // switch(instruction){
-        
-    // }
-}
-void printDataVector(){
-    cout <<"PRINTING DATA VECTOR==============================\n";
-    for(auto i : dataVector ) cout <<"PC: " << i.programCounter <<endl << "VALUE: " << i.value <<endl;
 
-}
 // Returns variable value based on progam counter position
 int getMemValue(string memPc){
     int intMemPc = stoi(memPc);
@@ -162,6 +160,7 @@ void userInteractionInstruction(Instruction instruction){
                 break;
             }
         case 13: 
+            outputValues.push_back(getMemValue(instruction.parameters.at(0)));
             cout << getMemValue(instruction.parameters.at(0)) <<endl;
             break; 
     }    
@@ -205,11 +204,7 @@ void runCode(vector<Instruction> codeVector){
         else{
             cout << "Fatal Error\nUnrecognized instruction\n";
         }
-        //  printRuntimeInfo();
-        // printDataVector();
-        // cout << "instr:" << codeVector.at(i).simbolicOpcode<<endl;
-        // string x;
-        // cin >> x;
+        printRuntimeInfo();
     }
 }
 
@@ -264,8 +259,16 @@ vector<Symbol> getData(vector<string> codeVector){
 
     return auxSymbolVector;
 }
+void printFile(){
+    std::ofstream outputFile;
+    outputFile.open(_outputFileName);
+    for(auto const &i : outputValues) cout << i << " ";
+}
 
-void openCode(ifstream &inFile){
+void openCode(ifstream &inFile, string outputFileName){
+    if(!outputFileName.empty()){
+        _outputFileName = outputFileName;
+    }
     while(!inFile.eof()){
         string readLine;
         getline(inFile,readLine, '\n');
@@ -282,4 +285,5 @@ void openCode(ifstream &inFile){
         }
         
     }
+
 }

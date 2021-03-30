@@ -6,6 +6,6 @@ using std::ifstream;
 using std::string;
 using std::vector;
 
-void openCode(ifstream &inFile);
+void openCode(ifstream &inFile, string outputFileName);
 
 #endif
