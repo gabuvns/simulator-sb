@@ -1,0 +1,266 @@
+#include <iostream>
+#include <fstream>
+#include <set>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include "./header/simulator.h"
+#include "./header/instructionsTable.h"
+
+using std::cin;
+using std::cout;
+using std::endl;
+using std::ifstream;
+using std::string;
+using std::vector;
+using std::map;
+
+int accumulator = 0, programCounter = 0;
+int programError = 0;
+
+void printRuntimeInfo(){
+    cout << "Program Counter <- " << programCounter << endl;
+    cout << "Accumulator <- " << accumulator << endl;
+}
+vector<string> parseProgram(string readLine){
+    string parsed;
+    parsed.clear();
+    vector<string> parsing;
+    for(auto i : readLine){
+        if(i == ' ' && !parsed.empty()){
+            parsing.push_back(parsed);
+            parsed.clear();
+        }
+        else{
+            parsed+=i;
+        }
+    }
+    return parsing;
+} 
+void analyzeInstruction(string instruction){
+    
+    // switch(instruction){
+        
+    // }
+}
+// Returns variable value based on progam counter position
+int getMemValue(string memPc){
+    int intMemPc = stoi(memPc);
+    for(auto &i : dataVector){
+        if(i.programCounter == intMemPc){
+            return i.value;
+        }
+    }
+    return 0;
+}
+// Returns vector element address
+Symbol * getMemPosition(string memPc){
+    int intMemPc = stoi(memPc);
+    for(auto &i : dataVector){
+        if(i.programCounter == intMemPc){
+            return &i;
+        }
+    }
+}
+
+void mathInstruction (Instruction instruction){
+    int value = getMemValue(instruction.parameters.at(0));
+    switch(instruction.opcode){
+        case 1: accumulator+=value;
+            break;
+        case 2: accumulator-=value;
+            break;
+        case 3: accumulator*=value;
+            break;
+        case 4: accumulator/=value;
+            break;
+    }   
+}       
+
+int jumpInstruction (Instruction instruction, vector<Instruction> codeVector, int * shouldJump){
+    // While jumpPc is not  used, it remains in the code for context 
+    // jumpPc refers to the programCounter we want to jump to
+    // While "index" refers to the index of jumpPc 
+    int jumpPc = 0;
+    int index = 0;
+    for(auto const &i : codeVector){
+        if(stoi(instruction.parameters.at(0)) == i.programCounter){
+            jumpPc = stoi(i.parameters.at(0));
+            break;
+        }
+        index++;
+    }
+
+    switch(instruction.opcode){
+        case 5:
+            return index;
+            break;
+        case 6: 
+            if(accumulator<0) {
+                *shouldJump = 1;
+                return index;   
+            }
+            break;
+        case 7:
+            if(accumulator>0) {
+                *shouldJump = 1;
+                return index;   
+            }
+            break;
+        case 8:            
+            if(accumulator==0) {
+                *shouldJump = 1;
+                return index;   
+            }
+            break;
+    }
+       
+}
+
+void copyInstruction (Instruction instruction){
+    switch(instruction.opcode){
+        case 9:
+            Symbol * auxSymbol1 = getMemPosition(instruction.parameters.at(0));
+            Symbol * auxSymbol2 = getMemPosition(instruction.parameters.at(1));
+            *auxSymbol2 = *auxSymbol1;
+            break;
+    }
+}
+
+void loadStoreInstruction(Instruction instruction){
+    switch(instruction.opcode){
+        case 10: 
+            accumulator = getMemValue(instruction.parameters.at(0));
+            break;
+        case 11: 
+            Symbol * auxSymbol = getMemPosition(instruction.parameters.at(0));
+            auxSymbol->value = accumulator;
+            break;
+    }
+}
+
+void userInteractionInstruction(Instruction instruction){
+    switch(instruction.opcode){
+
+        case 12:{
+                cout << instruction.simbolicOpcode <<endl;
+                cout << instruction.parameters.size() <<endl;
+
+
+                Symbol * auxSymbol = getMemPosition(instruction.parameters.at(0));
+                cout <<"YAHO;" <<endl;
+                cin >> auxSymbol->value;
+                break;
+            }
+        case 13: 
+            cout << getMemValue(instruction.parameters.at(0)) <<endl;
+            break; 
+    }    
+}
+
+void stopInstruction(Instruction instruction){
+    exit(1);
+}
+
+void runCode(vector<Instruction> codeVector){
+    for(int i = 0; i<codeVector.size();i++){
+        if(codeVector.at(i).opcode >= 1 && codeVector.at(i).opcode <= 4){
+            mathInstruction(codeVector.at(i));
+        }
+        else if(codeVector.at(i).opcode>=5 && codeVector.at(i).opcode<=8){
+            int * shouldJump = 0;
+            int auxValue = jumpInstruction(codeVector.at(i), codeVector, shouldJump);
+            if(*shouldJump == 1){
+                i = auxValue;
+            }
+        }
+        else if(codeVector.at(i).opcode==9){
+            copyInstruction(codeVector.at(i));
+        }
+        else if(codeVector.at(i).opcode>=10 && codeVector.at(i).opcode<=11){
+            loadStoreInstruction(codeVector.at(i));
+        }
+        else if(codeVector.at(i).opcode>=12 && codeVector.at(i).opcode<=13){
+        cout << "i : " << codeVector.at(i).simbolicOpcode <<endl;
+
+            userInteractionInstruction(codeVector.at(i));
+        }
+        else if(codeVector.at(i).opcode == 14){
+            stopInstruction(codeVector.at(i));
+        }
+        else{
+            cout << "Fatal Error\nUnrecognized instruction\n";
+        }
+    }
+}
+
+vector<Instruction> linkInstructions(vector<string> codeVector){
+    programCounter = 0;
+    vector<Instruction> instructionsVector;
+
+    for(auto it = codeVector.begin(); it != codeVector.end(); ++it){
+
+        auto searchedMapElement = InstructionsMap.find(stoi(*it));
+        Instruction auxInstruction = searchedMapElement->second;
+        vector<string> parameters;
+        // Add parameter to Instruction, while also incrementing to next number
+        for(int i = 0; i < searchedMapElement->second.numberOfParameters;i++){
+            it++;
+            parameters.push_back(*it);
+        }
+        auxInstruction.parameters = parameters;
+        auxInstruction.programCounter = programCounter;
+        programCounter+=searchedMapElement->second.sizeInWords;
+        instructionsVector.push_back(auxInstruction);
+        if(*it == "14") break;
+    }
+    return instructionsVector;
+}
+
+
+vector<Symbol> getData(vector<string> codeVector){
+    bool isData = false;
+    vector<Symbol> auxSymbolVector;
+
+    // Gets correct programCounter for data variables
+    for(auto it = codeVector.begin(); it != codeVector.end(); ++it){
+        auto searchMap = InstructionsMap.find(stoi(*it));
+        it+=searchMap->second.numberOfParameters;
+        programCounter+=searchMap->second.sizeInWords;
+        if(*it == "14") break;
+    }
+
+    for(auto i : codeVector){
+        if(isData){
+            Symbol auxSymbol(stoi(i), programCounter);
+            auxSymbolVector.push_back(auxSymbol);
+            programCounter++;
+        }
+        else{
+            if(i == "14"){
+                isData = true;
+            }
+        }
+    }
+
+    return auxSymbolVector;
+}
+
+void openCode(ifstream &inFile){
+    while(!inFile.eof()){
+        string readLine;
+        getline(inFile,readLine, '\n');
+        try{   
+            vector<string> codeVector = parseProgram(readLine);
+            dataVector = getData(codeVector); 
+            vector<Instruction> instructionsVector = linkInstructions(codeVector);
+
+            runCode(instructionsVector);
+        }
+        catch (int error){
+            cout << "Program ended with error.\n";
+        }
+        
+    }
+}
