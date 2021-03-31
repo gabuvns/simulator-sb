@@ -4,6 +4,7 @@ There is also an assembler avaiable at [github](https://github.com/gabuvns/assem
 
 ## Getting Started
 This program executes the code generated with this [custom assembler](https://github.com/gabuvns/assembler-sb).
+Just follow along to get the project running
 
 ## Prerequisites
 Pretty simple, you only need: 
