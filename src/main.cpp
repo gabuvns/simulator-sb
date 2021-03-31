@@ -1,10 +1,14 @@
+/*
+Author: Carlos Gabriel Vilas Novas Soares
+*/
+
 #include <iostream>
 #include <fstream>
 #include <set>
 #include <string>
 #include <vector>
-
 #include "./header/simulator.h"
+
 using std::cout;
 using std::endl;
 using std::ifstream;
