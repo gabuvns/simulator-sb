@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
         cout <<"Tried to open: '" << fileName << "'." << endl;
     }       
     
-    openCode(inFile);
+    openCode(inFile, outputFileName);
 
     inFile.close();
     return 0;

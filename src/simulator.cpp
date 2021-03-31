@@ -11,15 +11,17 @@
 using std::cin;
 using std::cout;
 using std::endl;
+using std::ofstream;
 using std::ifstream;
 using std::string;
 using std::vector;
 using std::map;
 
+
 string _outputFileName = "myOutputFile.txt";
 vector<int> outputValues;
 int accumulator = 0, programCounter = 0;
-int programError = 0;
+int programError = 0, programEnd = 0;;
 
 void printDataVector(){
     cout <<"PRINTING DATA VECTOR==============================\n";
@@ -29,7 +31,7 @@ void printDataVector(){
 
 void printRuntimeInfo(){
     cout << "Program Counter <- " << programCounter << endl;
-    cout << "Accumulator <- " << accumulator << endl;
+    cout << "Accumulator <- " << accumulator << endl <<endl;
 }
 vector<string> parseProgram(string readLine){
     string parsed;
@@ -161,17 +163,19 @@ void userInteractionInstruction(Instruction instruction){
             }
         case 13: 
             outputValues.push_back(getMemValue(instruction.parameters.at(0)));
-            cout << getMemValue(instruction.parameters.at(0)) <<endl;
+            cout << "OUTPUT: " << getMemValue(instruction.parameters.at(0)) <<endl;
             break; 
     }    
 }
 
 void stopInstruction(Instruction instruction){
-    exit(1);
+    programEnd = 1;
+
 }
 
 void runCode(vector<Instruction> codeVector){
     for(int i = 0; i<codeVector.size();i++){
+        if(programEnd) return;
        
         programCounter = codeVector.at(i).programCounter;
         if(codeVector.at(i).opcode >= 1 && codeVector.at(i).opcode <= 4){
@@ -262,7 +266,16 @@ vector<Symbol> getData(vector<string> codeVector){
 void printFile(){
     std::ofstream outputFile;
     outputFile.open(_outputFileName);
-    for(auto const &i : outputValues) cout << i << " ";
+
+    if(!outputFile){
+        cout <<"ERROR CREATING FILE\n";
+    }
+    else{
+
+        for(auto const &i : outputValues) outputFile << i << " ";
+        outputFile.close();
+
+    }
 }
 
 void openCode(ifstream &inFile, string outputFileName){
@@ -279,6 +292,8 @@ void openCode(ifstream &inFile, string outputFileName){
             vector<Instruction> instructionsVector = linkInstructions(codeVector);
 
             runCode(instructionsVector);
+            printFile();
+
         }
         catch (int error){
             cout << "Program ended with error.\n";
