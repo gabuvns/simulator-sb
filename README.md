@@ -1,9 +1,9 @@
 # Custom Machine Code Runtime Simulator 
 Simulator created for "Basic Software" class at University of Brasilia.
-There is also an assembler avaiable at [github](https://github.com/gabuvns/assembler-sb)
+There is also an assembler avaiable at [github](https://github.com/gabuvns/assembler-sb) and one [linker](https://github.com/gabuvns/linker-sb).
 
 ## Getting Started
-This program executes the code generated with this [custom assembler](https://github.com/gabuvns/assembler-sb).
+This program executes the code generated with this [linker](https://github.com/gabuvns/linker-sb).
 Just follow along to get the project running
 
 ## Prerequisites
@@ -26,15 +26,15 @@ make
 #### Or you can compile manually:
 
 ```
-g++ -o assembler ./src/main.cpp ./src/simulator.cpp -std=gnu++1z
+g++ -o simulator ./src/main.cpp ./src/simulator.cpp -std=gnu++1z
 ```
 
 ## Usage 
-This program takes the name of the file to be assembled as an argument and optionally the name of the outputfile. If no output file name is defined will use default: "myOutputFile.txt"
+This program takes the name of the file to be executed.
 
 ```
-./assembler <inputFileName> <outputFileName>
-./assembler inputFile.obj outputFile.txt
+./simulator <inputFileName>
+./simulator inputFile.obj
 ```
 ## Começando :brazil:
 Este montador suporta as instruções disponíveis na tabela disponível no início do README.
@@ -59,14 +59,14 @@ make
 #### Ou então pode-se compilar manualmente
 
 ```
-g++ -o assembler ./src/main.cpp ./src/assembler.cpp -std=gnu++1z
+g++ -o simulator ./src/main.cpp ./src/simulator.cpp -std=gnu++1z
 ```
 
 ## Uso 
-O programa recebe dois argumentos: o nome do arquivo a ser montado, e o nome do arquivo de saida. Caso nenhum nome de arquivo seja fornecido, o nome padrão será usado: "myOutputFile.txt"
+O programa recebe somente o nome do programa a ser executado
 ```
-./assembler <inputFileName> <outputFileName>
-./assembler inputFile.obj outputFile.txt
+./simulator <inputFileName> 
+./simulator inputFile.obj 
 ```
 
 ## Author
